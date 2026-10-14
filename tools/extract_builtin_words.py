@@ -20,6 +20,8 @@ import os
 import re
 import sys
 
+import utf8_console  # noqa: F401
+
 DEFAULT_IME_DIR = r'C:\Windows\InputMethod\CHS'
 CJK = re.compile(r'[\u4e00-\u9fa5]{2,16}')
 

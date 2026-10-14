@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.3.0] - 2026-10-15
+
+端到端复跑一遍完整管线（15 个数据源全部可用 → 20,000 条词表 → 原生容器自检通过），并补齐发布前的工程质量。
+
+### Added
+- `tools/utf8_console.py`：四个 Python 工具统一 UTF-8 输出（Windows 管道/agent 捕获时中文不再乱码；交互模式走 WriteConsoleW 不受影响）
+- `tests/test_selfcheck.py`：40 项仓库自检 —— 结构完整性、`.gitignore` 是否覆盖个人数据、词表纯中文 2–15 字、词源全 https + 许可记录、`.mspinyin.dat` 的 magic/计数/尺寸不变量、额度上限与去重
+- `build_profile_lexicon.py` 纳入 `xinhua-idiom`（成语源，726 条）后共 15 个源参与选词；去重后可选池 548,205 条
+
+### Fixed
+- `fetch_sources.py`：同一缓存目录下多个源互相覆盖 `manifest.json`，导致 provenance 丢失 —— 改为按源 id 合并，并对已有缓存回补（标记 `cached-local`）
+- `fetch_sources.py`：大文件下载无重试且 120s 超时（`idiom.json` 10MB 实测超时失败）—— 超时提到 300s、失败重试 2 次
+
+### Verified
+- `data/lexicons/profile-lexicon.txt` 20,000 条 → `profile-lexicon.mspinyin.dat` 19,996 条（转换期去重 4 条）
+- 容器自检：magic `55 AA 88 81`、计数 `0x0C` = 19996、尺寸 1,209,344 = `ceil((9228+60N)/1024)*1024`
+
 ## [0.2.0] - 2026-10-14
 
 聚焦成"个性化词库生成器"，并补齐开源结构。

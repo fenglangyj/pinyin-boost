@@ -9,7 +9,8 @@
     python fetch_sources.py --province 50,51         # 顺便按省提取地名（重庆=50 四川=51）
     python fetch_sources.py --wiki 摩托车制造商,网络流行语   # 用维基分类 API 补充中文词条
 
-缓存结构：cache/<id>/raw.<ext> + cache/<id>/manifest.json（url/sha256/size/license/downloaded_at）
+缓存结构：cache/<group>/<file> + cache/<group>/manifest.json（按源 id 合并，
+每条含 url/sha256/size/license/downloaded_at/provenance）
 """
 
 import argparse
@@ -20,6 +21,8 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+
+import utf8_console  # noqa: F401
 
 RAW = 'https://raw.githubusercontent.com'
 SOURCES = {
@@ -43,30 +46,68 @@ def opener(proxy=None):
     return urllib.request.build_opener(*handlers)
 
 
-def get(url, proxy=None, timeout=120):
-    req = urllib.request.Request(url, headers={'User-Agent': 'pinyin-boost/0.2'})
+def get(url, proxy=None, timeout=300):
+    req = urllib.request.Request(url, headers={'User-Agent': 'pinyin-boost/0.3'})
     with opener(proxy).open(req, timeout=timeout) as r:
         return r.read()
 
 
-def fetch(sid, url, dest, license_, proxy, force=False):
+def write_manifest(dest, sid, url, license_, size, digest, provenance='verified-open'):
+    """按源 id 合并写入 manifest.json，避免同目录多源互相覆盖。"""
+    path = os.path.join(os.path.dirname(dest), 'manifest.json')
+    data = {}
+    if os.path.exists(path):
+        try:
+            raw = json.load(open(path, encoding='utf-8'))
+            if isinstance(raw, dict):
+                if raw.get('id'):
+                    data[raw['id']] = {k: v for k, v in raw.items() if k != 'id'}
+                else:
+                    data = raw
+        except (ValueError, OSError):
+            data = {}
+    data[sid] = {
+        'url': url, 'license': license_, 'size': size, 'sha256': digest,
+        'downloaded_at': time.strftime('%Y-%m-%dT%H:%M:%S'), 'provenance': provenance,
+    }
+    json.dump(data, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
+
+
+def _manifest_has(dest, sid):
+    path = os.path.join(os.path.dirname(dest), 'manifest.json')
+    if not os.path.exists(path):
+        return False
+    try:
+        raw = json.load(open(path, encoding='utf-8'))
+    except (ValueError, OSError):
+        return False
+    if isinstance(raw, dict) and raw.get('id') == sid:
+        return True
+    return isinstance(raw, dict) and sid in raw and not raw.get('id')
+
+
+def fetch(sid, url, dest, license_, proxy, force=False, retries=2):
     if os.path.exists(dest) and os.path.getsize(dest) > 0 and not force:
+        if not _manifest_has(dest, sid):
+            body = open(dest, 'rb').read()
+            write_manifest(dest, sid, url, license_, len(body),
+                           hashlib.sha256(body).hexdigest(), provenance='cached-local')
         print('  %-16s 命中缓存 %s' % (sid, dest))
         return dest
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    try:
-        data = get(url, proxy)
-    except Exception as e:
-        print('  %-16s 下载失败: %s' % (sid, e))
+    data = None
+    for attempt in range(retries + 1):
+        try:
+            data = get(url, proxy)
+            break
+        except Exception as e:
+            print('  %-16s 下载失败(第 %d 次): %s' % (sid, attempt + 1, e))
+            if attempt < retries:
+                time.sleep(2)
+    if data is None:
         return None
     open(dest, 'wb').write(data)
-    manifest = {
-        'id': sid, 'url': url, 'license': license_, 'size': len(data),
-        'sha256': hashlib.sha256(data).hexdigest(), 'downloaded_at': time.strftime('%Y-%m-%dT%H:%M:%S'),
-        'provenance': 'verified-open',
-    }
-    json.dump(manifest, open(os.path.join(os.path.dirname(dest), 'manifest.json'), 'w', encoding='utf-8'),
-              ensure_ascii=False, indent=2)
+    write_manifest(dest, sid, url, license_, len(data), hashlib.sha256(data).hexdigest())
     print('  %-16s 已下载 %8d bytes  (%s)' % (sid, len(data), license_))
     return dest
 

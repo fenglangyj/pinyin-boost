@@ -17,6 +17,8 @@ import os
 import re
 import sys
 
+import utf8_console  # noqa: F401
+
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CJK = re.compile(r'^[\u3007\u4e00-\u9fa5]{2,15}$')     # 纯中文 2-15 字（IME 记录上限 15）
 CAP = 20000

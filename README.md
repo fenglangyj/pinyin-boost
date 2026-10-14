@@ -48,6 +48,9 @@ python .\tools\build_profile_lexicon.py --profile .\skill\profile.example.json -
 powershell -ExecutionPolicy Bypass -File .\scripts\A\Import-Lexicon.ps1 -DownloadTool
 
 # 5) 设置里导入：时间和语言 → 语言和区域 → 中文 → 语言选项 → 微软拼音 → 词库和自学习 → 导入
+
+# 6) 仓库自检（开源结构 + 词表/容器格式不变量，40 项）
+python .\tests\test_selfcheck.py
 ```
 
 ## 四、目录结构
@@ -65,9 +68,12 @@ pinyin-boost/
 │  └─ lib/PinyinBoost.Common.psm1
 ├─ tools/
 │  ├─ extract_builtin_words.py   从本机内置词典提取"已知词"（剔除用）
-│  ├─ fetch_sources.py           下载开放数据源（缓存 + 代理）
+│  ├─ fetch_sources.py           下载开放数据源（缓存 + 代理 + manifest 溯源）
 │  ├─ build_profile_lexicon.py   画像 → 20,000 条词表（打分/配额/截断）
-│  └─ merge_wordlists.py         多源合并 + 上限截断（自建词表用）
+│  ├─ merge_wordlists.py         多源合并 + 上限截断（自建词表用）
+│  └─ utf8_console.py            Windows 管道输出统一 UTF-8
+├─ tests/
+│  └─ test_selfcheck.py          仓库自检（结构/词表/容器/gitignore 泄露）
 ├─ docs/
 │  ├─ format-and-limits.md       词库格式逆向报告 + 上限实测（本项目的核心知识）
 │  ├─ runbook.md                 操作手册
