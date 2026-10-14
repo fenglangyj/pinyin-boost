@@ -1,0 +1,19 @@
+{
+  "_comment": "画像示例。真正的画像由 skill 通过对话获取；字段可按需扩展，维度不要设死。",
+  "industry": ["IT"],
+  "industry_detail": ["后端", "运维"],
+  "city": ["四川", "重庆"],
+  "frequent_places": ["成都", "重庆", "贵阳"],
+  "interests": ["机车", "摩旅", "游戏"],
+  "interest_detail": { "机车": "每周骑，改装党", "摩旅": "跑长途，常去陌生城市" },
+  "communities": ["机车论坛", "摩友群"],
+  "devices": ["摩托车", "运动相机", "对讲机"],
+  "family": { "has_children": true, "children_stage": "小学" },
+  "typing_scenes": ["微信", "邮件", "代码注释", "文档"],
+  "age_band": "40-49",
+  "gender": "male",
+  "dialect_words": ["巴适", "雄起"],
+  "typing": { "style": "全拼", "need_traditional": false, "english_mix": true },
+  "private_terms_file": "",
+  "notes": "抓不到的词源请产出取词清单，不要因为取不到就放弃该词汇域"
+}

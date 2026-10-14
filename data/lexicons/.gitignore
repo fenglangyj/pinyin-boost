@@ -1,0 +1,4 @@
+# Put source dictionaries here (.scel / .bin / .txt / .csv).
+# Their contents are user data and are intentionally git-ignored.
+*
+!.gitignore

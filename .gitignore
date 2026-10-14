@@ -1,0 +1,27 @@
+# 运行产物
+cache/
+out/
+artifacts/
+
+# 生成的词库容器与词表
+*.mspinyin.dat
+*.phrases.dat
+*.userdb
+
+# 下载的第三方工具/数据
+tools/imewlconverter/
+data/lexicons/*
+!data/lexicons/.gitignore
+
+# 本机配置与个人数据
+config/config.psd1
+skill/profile.json
+*.reg
+
+# python
+__pycache__/
+*.pyc
+
+# 编辑器
+.idea/
+.vscode/
